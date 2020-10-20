@@ -5,3 +5,11 @@ body {
 .titleText {
     margin: 30px;
 }
+
+.line-through {
+    text-decoration: line-through;
+}
+
+.hidden {
+    display: none;
+}
