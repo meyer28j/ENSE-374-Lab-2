@@ -1,9 +1,10 @@
+// given "this" is the <input type="checkbox"/>
 // toggle visibility of text strike-through and abandon button
 function check() {
     let parent = $(this).parent().parent().parent(); // it's gross, I know
     parent.children("span").toggleClass("line-through"); // add / remove line through effect
     parent.children().last().toggleClass("hidden"); // add / remove abandon button visibility
-    console.log("Task checked");
+    console.log("Task '" + parent.find("span").text() + "' checked");
 
 }
 
@@ -21,6 +22,7 @@ function addCheckbox(parent) {
 function removeCheckbox(parent) {
 
     let prepend = parent.children().first(); // get first child of element
+    console.log(prepend.find("input"));
     if (prepend.find("input").length > 0) { // check there is a checkbox prepended
         prepend.remove(); // remove prepended element
         console.log("Checkbox removed");
@@ -32,11 +34,12 @@ function removeCheckbox(parent) {
 function abandon() {
 
     let btn = $(this); // get button element
+    let parent = btn.parent().parent(); // get button grandparent
     btn.text("Claim"); // change text to "claim"
     btn.one("click", claim); // add abandon event handler
 
-    removeCheckbox(btn.parent().parent()); // hide checkbox
-    console.log("Task  " + btn.text() + " abandoned");
+    removeCheckbox(parent); // hide checkbox
+    console.log("Task '" + parent.find("span").text() + "' abandoned");
 }
 
 // assume the event was attached with the "one()" method
@@ -44,17 +47,17 @@ function abandon() {
 function claim() {
 
     let btn = $(this); // get button element
+    let parent = btn.parent().parent(); // get button grandparent
     btn.text("Abandon"); // change text to "abandon"
     btn.one("click", abandon); // add claim event listener
 
-    addCheckbox(btn.parent().parent()); // add checkbox
-    console.log("Task " + btn.text() + " claimed");
+    addCheckbox(parent); // add checkbox
+    console.log("Task '" + parent.find("span").text() + "' claimed");
 }
 
 // creates and prepends a div with a checkbox, an
 // abandon button, and text from "new task" field
 function addTask() {
-    console.log("New task added");
     let newText = $("#newTask").val(); // get text from "add" element
     if (newText == "" || newText == null) { return; } // no text added!?!? Get outta here!
 
@@ -79,31 +82,43 @@ function addTask() {
     let addTask = $("#newTask"); // get "add new task" bar
     addTask.parent().before(newTask); // insert new task before "add new task" bar
     addTask.val(""); // clear add task text
-    // add listener for clicking check box
-    // add listener for clicking abandon button
+
+    console.log("New task '" + newText + "' added");
 
 }
 
+// remove all completed tasks
 function removeComplete () {
-    
+    $("span.line-through").parent().remove();
+    console.log("Completed tasks removed");
 }
 
 $(document).ready(function () {
     console.log("list.js jQuery loaded successfully.");
 
-    // add listeners for static example elements
 
-    /*
-    $(":checkbox")[0].click(check);
-    for (checkbox of $(":checkbox")) {
-        console.log(checkbox);
-        console.log(typeof(checkbox));
-        checkbox.click(check); // add line-through change for textbox click
-    }
-    */
+    // add click event listeners for existing checkboxes
+    $(":checkbox").each( function() { // for every checkbox
+        // (SOLVED) PROBLEM: refreshing the page resets the form element and keeps the checkmark
+        // line is striked and box unchecked OR line is unstriked and box is checked
+        if ($(this).prop("checked") && !($(this).parent().parent().next().hasClass("line-through")) ||
+        !($(this).prop("checked")) && $(this).parent().parent().next().hasClass("line-through")) {
+            $(this).click(); // toggle the check in the 'mismatched' cases
+        }
+        $(this).click(check); // add line-through change for checkbox click
+    })
 
+    // add click event listeners for existing buttons, excluding 'add' and 'remove'
+    $(":button").each( function() { // for every button
+        console.log($(this));
+        if ($(this).id == "buttonAdd") return false; // break once 'Add' button is reached
+        // if abandon button, add event listener for abandon, else add listener for claim
+        ($(this).text() == "Abandon") ? $(this).one("click", abandon) : $(this).one("click", claim);
+    })
+
+    // add event listeners for 'add' and 'remove' buttons
     $("#buttonAdd").click(addTask); // create new task when you click the add button
-    $("$buttonRemove").click(removeComplete); // remove completed tasks when you click the remove button
+    $("#buttonRemove").click(removeComplete); // remove completed tasks when you click the remove button
 });
 
 /*
