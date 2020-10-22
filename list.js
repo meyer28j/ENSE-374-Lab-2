@@ -88,48 +88,51 @@ function addTask() {
 }
 
 // remove all completed tasks
-function removeComplete () {
-    $("span.line-through").parent().remove();
+function removeComplete() {
+
+    let articles = $("span.line-through").parent(); // collect articles
+    articles.children().text(""); // blank out text
+    articles.addClass("disappear-left"); // add animation class
+
+    setInterval(function () { // wait for animation duration
+        articles.remove(); // then delete
+    }, 500);
     console.log("Completed tasks removed");
 }
 
 $(document).ready(function () {
     console.log("list.js jQuery loaded successfully.");
 
-
     // add click event listeners for existing checkboxes
-    $(":checkbox").each( function() { // for every checkbox
-        // (SOLVED) PROBLEM: refreshing the page resets the form element and keeps the checkmark
+    $(":checkbox").each(function () { // for every checkbox
         // line is striked and box unchecked OR line is unstriked and box is checked
         if ($(this).prop("checked") && !($(this).parent().parent().next().hasClass("line-through")) ||
-        !($(this).prop("checked")) && $(this).parent().parent().next().hasClass("line-through")) {
+            !($(this).prop("checked")) && $(this).parent().parent().next().hasClass("line-through")) {
             $(this).click(); // toggle the check in the 'mismatched' cases
         }
         $(this).click(check); // add line-through change for checkbox click
     })
 
-    // add click event listeners for existing buttons, excluding 'add' and 'remove'
-    $(":button").each( function() { // for every button
-        console.log($(this));
-        if ($(this).id == "buttonAdd") return false; // break once 'Add' button is reached
-        // if abandon button, add event listener for abandon, else add listener for claim
-        ($(this).text() == "Abandon") ? $(this).one("click", abandon) : $(this).one("click", claim);
+    // add click event listeners for existing claim/abandon buttons
+    $(":button").each(function () { // for every button
+        if ($(this).text() == "Abandon") {
+            $(this).one("click", abandon);
+        } else if ($(this).text() == "Claim") {
+            $(this).one("click", claim)
+        }
     })
 
+    // add timer for hiding the logout button
+    $("#accordion").mouseleave(function () {
+        let logoutTimer = setTimeout(function () { // after two seconds
+            // if the button is shown and the mouse is not hovering over
+            if ($("#logoutCollapse").hasClass("show") && ($("#accordion:hover").length == 0)) {
+                $("#buttonLogout").click(); // hide the button
+            }
+        }, 1000);
+        
+    });
     // add event listeners for 'add' and 'remove' buttons
     $("#buttonAdd").click(addTask); // create new task when you click the add button
     $("#buttonRemove").click(removeComplete); // remove completed tasks when you click the remove button
 });
-
-/*
-3. Non-persistent interactivity (30 Marks)
-In this section you will add simplified interactive tasks for one user. Using JavaScript or jQuery DOM manipulation, add the following functionality
-- If the user enters text and clicks the add task button, create and add a simple task
-    - Have a textbox which matches the input text content, but is no longer editable
-    - Have a checkbox to the left of the task for the user to click on when finished
-    - Experiment with jQuery animations for adding the new task
-- When the user clicks on the checkbox, cross off the task
-- If the user unchecks the checkbox, return the task to normal
-- Finally, when the user clicks remove complete, remove all of the completed tasks
-    - Experiment with jQuery animations for removing completed tasks
-    */
